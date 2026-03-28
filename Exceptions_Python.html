@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Exceptions Reference</title>
+    <style>
+        :root {
+            --bg-app: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-code: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --accent: #6366f1;
+            --accent-light: #e0e7ff;
+            --star: #fbbf24;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+        }
+
+        .brand span {
+            color: var(--accent);
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-app);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        /* Main Layout */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar (Tree) */
+        .sidebar {
+            width: 380px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .search-box {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            background: var(--bg-surface);
+        }
+
+        .tree-container {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tree ul {
+            list-style: none;
+            padding-left: 20px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .tree ul.open {
+            display: block;
+        }
+
+        .tree li {
+            margin: 2px 0;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            user-select: none;
+        }
+
+        .node:hover {
+            background: var(--bg-app);
+            color: var(--text-primary);
+        }
+
+        .node.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .node-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .node.expanded > .node-icon {
+            transform: rotate(90deg);
+            color: var(--accent);
+        }
+
+        .node-name {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .star {
+            color: var(--star);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--bg-app);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.new { color: #059669; background: #d1fae5; }
+        .badge.base { color: #4f46e5; background: #e0e7ff; }
+
+        /* Detail Pane */
+        .detail-pane {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background: var(--bg-app);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .detail-content {
+            max-width: 800px;
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 40px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .detail-content.visible {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .detail-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .detail-star {
+            color: var(--star);
+            font-size: 1.2rem;
+        }
+
+        .detail-badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--bg-app);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .detail-desc {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .code-header {
+            background: rgba(0,0,0,0.03);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-content {
+            padding: 20px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #334155;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.6;
+        }
+
+        .code-keyword { color: #d946ef; }
+        .code-function { color: #2563eb; }
+        .code-string { color: #16a34a; }
+        .code-comment { color: #94a3b8; }
+        .code-number { color: #f59e0b; }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 100px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .workspace {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                max-height: 400px;
+            }
+            .detail-pane {
+                padding: 20px;
+            }
+            .detail-content {
+                padding: 24px;
+            }
+            .legend {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <h1>Python <span>Exceptions</span></h1>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="expandAll()">Expand All</button>
+            <button class="btn" onclick="collapseAll()">Collapse All</button>
+        </div>
+    </header>
+
+    <div class="legend">
+        <div class="legend-item">
+            <span class="star">★</span>
+            <span>Commonly Used</span>
+        </div>
+        <div class="legend-item">
+            <span class="badge new">3.3+</span>
+            <span>Python 3.3+</span>
+        </div>
+        <div class="legend-item">
+            <span class="badge base">Base</span>
+            <span>Base Class</span>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <!-- Sidebar Tree -->
+        <aside class="sidebar">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search exceptions..." id="searchInput" onkeyup="filterTree()">
+            </div>
+            <div class="tree-container">
+                <ul class="tree" id="exceptionTree"></ul>
+            </div>
+        </aside>
+
+        <!-- Detail Pane -->
+        <main class="detail-pane">
+            <div id="emptyState" class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <h3>Select an Exception</h3>
+                <p>Click on any item in the tree to view details and examples.</p>
+            </div>
+
+            <div id="detailContent" class="detail-content">
+                <div class="detail-header">
+                    <div class="detail-title-wrapper">
+                        <h2 class="detail-title" id="detailTitle">ExceptionName</h2>
+                        <span class="detail-star" id="detailStar" style="display:none">★</span>
+                    </div>
+                    <span class="detail-badge" id="detailBadge">Base</span>
+                </div>
+                <div class="detail-desc" id="detailDesc">
+                    Description goes here.
+                </div>
+                <div class="code-block">
+                    <div class="code-header">Example Snippet</div>
+                    <div class="code-content" id="detailCode"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Complete Data Structure for All Exceptions
+        const exceptionData = {
+            "BaseException": {
+                desc: "The root of all exception classes in Python. All built-in exceptions inherit from this. You should not inherit from this directly in your code — use Exception instead.",
+                badge: "Base",
+                common: false,
+                code: `<span class="code-keyword">try</span>:
+    <span class="code-comment"># Usually not caught directly</span>
+    <span class="code-keyword">raise</span> <span class="code-function">BaseException</span>(<span class="code-string">"Critical error"</span>)
+<span class="code-keyword">except</span> <span class="code-function">BaseException</span> <span class="code-keyword">as</span> e:
+    <span class="code-function">print</span>(<span class="code-string">f"Caught: {e}"</span>)`
+            },
+            "Exception": {
+                desc: "The base class for all normal exceptions. This is what you should inherit from when creating your own custom exceptions. It excludes system-exiting exceptions like KeyboardInterrupt.",
+                badge: "Standard",
+                common: true,
+                code: `<span class="code-keyword">class</span> <span class="code-function">MyCustomError</span>(<span class="code-function">Exception</span>):
+    <span class="code-keyword">pass</span>
+
+<span class="code-keyword">raise</span> <span class="code-function">MyCustomError</span>(<span class="code-string">"Something went wrong"</span>)`
+            },
+            "SystemExit": {
+                desc: "Raised when sys.exit() is called. It inherits from BaseException (not Exception) so it can't be accidentally caught by general exception handlers, ensuring the program actually exits.",
+                badge: "System",
+                common: false,
+                code: `<span class="code-keyword">import</span> sys
+
+<span class="code-comment"># Exits the program immediately</span>
+sys.<span class="code-function">exit</span>(0)  <span class="code-comment"># 0 means success</span>
+sys.<span class="code-function">exit</span>(1)  <span class="code-comment"># 1 means error</span>`
+            },
+            "KeyboardInterrupt": {
+                desc: "Raised when you press Ctrl+C (or Delete) to stop a running program. It inherits from BaseException so it always works, even inside try-except blocks that catch Exception.",
+                badge: "System",
+                common: true,
+                code: `<span class="code-keyword">while</span> <span class="code-function">True</span>:
+    <span class="code-keyword">try</span>:
+        <span class="code-function">input</span>(<span class="code-string">"Running... (Press Ctrl+C to stop)"</span>)
+    <span class="code-keyword">except</span> <span class="code-function">KeyboardInterrupt</span>:
+        <span class="code-function">print</span>(<span class="code-string">"\\nProgram stopped by user"</span>)
+        <span class="code-keyword">break</span>`
+            },
+            "GeneratorExit": {
+                desc: "Raised inside a generator when its close() method is called. Used for cleanup when a generator is being destroyed.",
+                badge: "System",
+                common: false,
+                code: `<span class="code-keyword">def</span> <span class="code-function">my_generator</span>():
+    <span class="code-keyword">try</span>:
+        <span class="code-keyword">yield</span> <span class="code-function">1</span>
+    <span class="code-keyword">finally</span>:
+        <span class="code-function">print</span>(<span class="code-string">"Cleanup!"</span>)
+
+gen = <span class="code-function">my_generator</span>()
+<span class="code-function">next</span>(gen)
+gen.<span class="code-function">close</span>()  <span class="code-comment"># Triggers GeneratorExit</span>`
+            },
+            "StopIteration": {
+                desc: "Raised by next() when an iterator has no more items to return. You usually don't see this because for-loops handle it automatically.",
+                badge: "",
+                common: false,
+                code: `my_iter = <span class="code-function">iter</span>([<span class="code-function">1</span>, <span class="code-function">2</span>])
+<span class="code-function">print</span>(<span class="code-function">next</span>(my_iter))  <span class="code-comment"># 1</span>
+<span class="code-function">print</span>(<span class="code-function">next</span>(my_iter))  <span class="code-comment"># 2</span>
+<span class="code-function">print</span>(<span class="code-function">next</span>(my_iter))  <span class="code-comment"># Raises StopIteration</span>`
+            },
+            "AssertionError": {
+                desc: "Raised when an assert statement fails. Used for debugging and testing — if the condition is False, this error is raised.",
+                badge: "",
+                common: true,
+                code: `age = <span class="code-function">-5</span>
+<span class="code-keyword">assert</span> age >= <span class="code-function">0</span>, <span class="code-string">"Age cannot be negative"</span>
+<span class="code-comment"># Raises AssertionError</span>`
+            },
+            "AttributeError": {
+                desc: "Raised when you try to access an attribute or method that doesn't exist on an object. Very common when working with objects.",
+                badge: "",
+                common: true,
+                code: `x = <span class="code-function">None</span>
+<span class="code-function">print</span>(x.<span class="code-function">value</span>)  
+<span class="code-comment"># AttributeError: 'NoneType' object has no attribute 'value'</span>
+
+<span class="code-keyword">class</span> <span class="code-function">Person</span>:
+    <span class="code-keyword">pass</span>
+
+p = <span class="code-function">Person</span>()
+p.<span class="code-function">name</span>  <span class="code-comment"># AttributeError: 'Person' object has no attribute 'name'</span>`
+            },
+            "BufferError": {
+                desc: "Raised when a memory buffer operation fails. Rare — usually happens with low-level memory operations.",
+                badge: "",
+                common: false,
+                code: `<span class="code-comment"># Rare, happens with memoryview operations</span>
+<span class="code-keyword">import</span> array
+arr = array.<span class="code-function">array</span>(<span class="code-string">'i'</span>, [<span class="code-function">1</span>, <span class="code-function">2</span>, <span class="code-function">3</span>])
+mv = <span class="code-function">memoryview</span>(arr)
+<span class="code-comment"># BufferError can occur with certain buffer operations</span>`
+            },
+            "EOFError": {
+                desc: "Raised when input() reaches the end of a file without reading any data. Common when reading from files or pipes.",
+                badge: "",
+                common: false,
+                code: `<span class="code-keyword">try</span>:
+    line = <span class="code-function">input</span>()
+<span class="code-keyword">except</span> <span class="code-function">EOFError</span>:
+    <span class="code-function">print</span>(<span class="code-string">"End of input reached"</span>)`
+            },
+            "ImportError": {
+                desc: "Raised when an import statement fails. This is the parent class for ModuleNotFoundError.",
+                badge: "",
+                common: true,
+                code: `<span class="code-keyword">try</span>:
+    <span class="code-keyword">import</span> some_module
+<span class="code-keyword">except</span> <span class="code-function">ImportError</span>:
+    <span class="code-function">print</span>(<span class="code-string">"Could not import module"</span>)`
+            },
+            "ModuleNotFoundError": {
+                desc: "Raised when Python can't find a module you're trying to import. This is a more specific version of ImportError (Python 3.6+).",
+                badge: "3.6+",
+                common: true,
+                code: `<span class="code-keyword">import</span> non_existent_module
+<span class="code-comment"># ModuleNotFoundError: No module named 'non_existent_module'</span>`
+            },
+            "LookupError": {
+                desc: "Base class for errors related to looking up items in collections (like lists or dictionaries). You won't catch this directly — use IndexError or KeyError instead.",
+                badge: "Abstract",
+                common: false,
+                code: `<span class="code-comment"># This is a base class, catch IndexError or KeyError instead</span>
+<span class="code-keyword">try</span>:
+    <span class="code-keyword">pass</span>
+<span class="code-keyword">except</span> <span class="code-function">LookupError</span>:
+    <span class="code-function">print</span>(<span class="code-string">"Caught lookup error"</span>)`
+            },
+            "IndexError": {
+                desc: "Raised when you try to access a list, tuple, or string with an index that doesn't exist (too high or negative beyond range).",
+                badge: "",
+                common: true,
+                code: `my_list = [<span class="code-function">1</span>, <span class="code-function">2</span>, <span class="code-function">3</span>]
+<span class="code-function">print</span>(my_list[<span class="code-function">5</span>])
+<span class="code-comment"># IndexError: list index out of range</span>
+
+my_string = <span class="code-string">"hello"</span>
+my_string[<span class="code-function">10</span>]  <span class="code-comment"># IndexError</span>`
+            },
+            "KeyError": {
+                desc: "Raised when you try to access a dictionary key that doesn't exist. One of the most common errors when working with dictionaries.",
+                badge: "",
+                common: true,
+                code: `my_dict = {<span class="code-string">"name"</span>: <span class="code-string">"Alice"</span>, <span class="code-string">"age"</span>: <span class="code-function">25</span>}
+<span class="code-function">print</span>(my_dict[<span class="code-string">"email"</span>])
+<span class="code-comment"># KeyError: 'email'</span>
+
+<span class="code-comment"># Safer alternatives:</span>
+my_dict.<span class="code-function">get</span>(<span class="code-string">"email"</span>)  <span class="code-comment"># Returns None instead</span>
+my_dict.<span class="code-function">get</span>(<span class="code-string">"email"</span>, <span class="code-string">"not found"</span>)  <span class="code-comment"># Returns default</span>`
+            },
+            "MemoryError": {
+                desc: "Raised when Python runs out of memory. This is rare in normal programs but can happen with very large data operations.",
+                badge: "",
+                common: false,
+                code: `<span class="code-comment"># Creating a very large list</span>
+<span class="code-keyword">try</span>:
+    huge_list = [<span class="code-function">0</span>] * (<span class="code-function">10</span>**<span class="code-function">10</span>)
+<span class="code-keyword">except</span> <span class="code-function">MemoryError</span>:
+    <span class="code-function">print</span>(<span class="code-string">"Not enough memory!"</span>)`
+            },
+            "NameError": {
+                desc: "Raised when you use a variable name that hasn't been defined. Common typo or using a variable before creating it.",
+                badge: "",
+                common: true,
+                code: `<span class="code-function">print</span>(undefined_variable)
+<span class="code-comment"># NameError: name 'undefined_variable' is not defined</span>
+
+<span class="code-keyword">def</span> <span class="code-function">my_func</span>():
+    <span class="code-function">print</span>(x)  <span class="code-comment"># x not defined in this scope</span>`
+            },
+            "UnboundLocalError": {
+                desc: "A specific type of NameError. Happens when you try to use a local variable before assigning it, especially inside functions.",
+                badge: "",
+                common: false,
+                code: `x = <span class="code-function">10</span>
+<span class="code-keyword">def</span> <span class="code-function">my_func</span>():
+    <span class="code-function">print</span>(x)  <span class="code-comment"># This would work</span>
+    x = <span class="code-function">20</span>  <span class="code-comment"># But this line makes x local!</span>
+
+<span class="code-function">my_func</span>()
+<span class="code-comment"># UnboundLocalError: local variable 'x' referenced before assignment</span>`
+            },
+            "OSError": {
+                desc: "Base class for operating system errors. Covers file operations, permissions, and other system-level issues. Has many specific subclasses.",
+                badge: "",
+                common: true,
+                code: `<span class="code-keyword">try</span>:
+    <span class="code-keyword">with</span> <span class="code-function">open</span>(<span class="code-string">"file.txt"</span>) <span class="code-keyword">as</span> f:
+        <span class="code-keyword">pass</span>
+<span class="code-keyword">except</span> <span class="code-function">OSError</span> <span class="code-keyword">as</span> e:
+    <span class="code-function">print</span>(<span class="code-string">f"OS Error: {e}"</span>)`
+            },
+            "FileNotFoundError": {
+                desc: "Raised when you try to open or access a file that doesn't exist. Very common when working with files.",
+                badge: "3.3+",
+                common: true,
+                code: `<span class="code-keyword">with</span> <span class="code-function">open</span>(<span class="code-string">"missing.txt"</span>) <span class="code-keyword">as</span> f:
+    data = f.<span class="code-function">read</span>()
+<span class="code-comment"># FileNotFoundError: [Errno 2] No such file or directory: 'missing.txt'</span>`
+            },
+            "PermissionError": {
+                desc: "Raised when you don't have permission to perform an operation, like reading a protected file or writing to a read-only folder.",
+                badge: "3.3+",
+                common: true,
+                code: `<span class="code-comment"># Try to write to a read-only file</span>
+<span class="code-keyword">with</span> <span class="code-function">open</span>(<span class="code-string">"/protected/file.txt"</span>, <span class="code-string">"w"</span>) <span class="code-keyword">as</span> f:
+    f.<span class="code-function">write</span>(<span class="code-string">"data"</span>)
+<span class="code-comment"># PermissionError: [Errno 13] Permission denied</span>`
+            },
+            "FileExistsError": {
+                desc: "Raised when you try to create a file or directory that already exists. Useful when you want to avoid overwriting.",
+                badge: "3.3+",
+                common: false,
+                code: `<span class="code-keyword">import</span> os
+
+<span class="code-comment"># Try to create a directory that exists</span>
+os.<span class="code-function">makedirs</span>(<span class="code-string">"/existing_folder"</span>, exist_ok=<span class="code-function">False</span>)
+<span class="code-comment"># FileExistsError: [Errno 17] File exists</span>`
+            },
+            "InterruptedError": {
+                desc: "Raised when a system call is interrupted by a signal. Rare in normal Python code.",
+                badge: "3.3+",
+                common: false,
+                code: `<span class="code-comment"># Rare, happens with signal interruptions</span>
+<span class="code-keyword">import</span> signal
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">def</span> <span class="code-function">handler</span>(signum, frame):
+    <span class="code-keyword">raise</span> <span class="code-function">InterruptedError</span>()
+
+signal.<span class="code-function">signal</span>(signal.<span class="code-function">ALRM</span>, <span class="code-function">handler</span>)`
+            },
+            "IsADirectoryError": {
+                desc: "Raised when you try to do a file operation on a directory, like opening a folder as if it were a file.",
+                badge: "3.3+",
+                common: false,
+                code: `<span class="code-keyword">with</span> <span class="code-function">open</span>(<span class="code-string">"/some/folder"</span>) <span class="code-keyword">as</span> f:
+    <span class="code-keyword">pass</span>
+<span class="code-comment"># IsADirectoryError: [Errno 21] Is a directory</span>`
+            },
+            "NotADirectoryError": {
+                desc: "Raised when you try to do a directory operation on a file, like listing contents of a file.",
+                badge: "3.3+",
+                common: false,
+                code: `<span class="code-keyword">import</span> os
+
+os.<span class="code-function">listdir</span>(<span class="code-string">"some_file.txt"</span>)
+<span class="code-comment"># NotADirectoryError: [Errno 20] Not a directory</span>`
+            },
+            "RuntimeError": {
+                desc: "A generic error for problems that don't fit other categories. Often used as a base for custom exceptions or when something unexpected happens.",
+                badge: "",
+                common: true,
+                code: `<span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(<span class="code-string">"Something unexpected happened!"</span>)
+
+<span class="code-comment"># Common in libraries when state is invalid</span>
+<span class="code-keyword">if</span> not connected:
+    <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(<span class="code-string">"Not connected to database"</span>)`
+            },
+            "RecursionError": {
+                desc: "Raised when a function calls itself too many times (infinite recursion). Python has a limit to prevent crashing your computer.",
+                badge: "3.5+",
+                common: false,
+                code: `<span class="code-keyword">def</span> <span class="code-function">infinite_recursion</span>():
+    <span class="code-keyword">return</span> <span class="code-function">infinite_recursion</span>()
+
+<span class="code-function">infinite_recursion</span>()
+<span class="code-comment"># RecursionError: maximum recursion depth exceeded</span>`
+            },
+            "NotImplementedError": {
+                desc: "Raised when a method should be implemented by a subclass but isn't. Used when creating abstract base classes.",
+                badge: "",
+                common: false,
+                code: `<span class="code-keyword">class</span> <span class="code-function">Animal</span>:
+    <span class="code-keyword">def</span> <span class="code-function">speak</span>(self):
+        <span class="code-keyword">raise</span> <span class="code-function">NotImplementedError</span>(<span class="code-string">"Subclasses must implement speak()"</span>)
+
+<span class="code-keyword">class</span> <span class="code-function">Dog</span>(<span class="code-function">Animal</span>):
+    <span class="code-keyword">def</span> <span class="code-function">speak</span>(self):
+        <span class="code-keyword">return</span> <span class="code-string">"Woof!"</span>`
+            },
+            "SyntaxError": {
+                desc: "Raised when Python finds invalid syntax in your code. This happens before your code runs, during the parsing phase.",
+                badge: "",
+                common: true,
+                code: `<span class="code-keyword">if</span> <span class="code-function">True</span>  <span class="code-comment"># Missing colon!</span>
+    <span class="code-function">print</span>(<span class="code-string">"hello"</span>)
+
+<span class="code-keyword">for</span> i <span class="code-keyword">in</span> [<span class="code-function">1</span>, <span class="code-function">2</span>]  <span class="code-comment"># Missing colon!</span>
+    <span class="code-function">print</span>(i)
+
+<span class="code-comment"># SyntaxError: invalid syntax</span>`
+            },
+            "IndentationError": {
+                desc: "Raised when your code has incorrect indentation. Python uses indentation to define code blocks, so this is important!",
+                badge: "",
+                common: true,
+                code: `<span class="code-keyword">if</span> <span class="code-function">True</span>:
+<span class="code-function">print</span>(<span class="code-string">"Wrong indent"</span>)  <span class="code-comment"># Should be indented</span>
+
+<span class="code-keyword">def</span> <span class="code-function">my_func</span>():
+<span class="code-function">pass</span>  <span class="code-comment"># Should be indented</span>
+
+<span class="code-comment"># IndentationError: expected an indented block</span>`
+            },
+            "TabError": {
+                desc: "Raised when you mix tabs and spaces for indentation. Always use spaces (4 per level) in Python to avoid this.",
+                badge: "",
+                common: false,
+                code: `<span class="code-keyword">if</span> <span class="code-function">True</span>:
+    <span class="code-function">print</span>(<span class="code-string">"spaces"</span>)
+\t<span class="code-function">print</span>(<span class="code-string">"tab"</span>)  <span class="code-comment"># Mixing tab with spaces</span>
+
+<span class="code-comment"># TabError: inconsistent use of tabs and spaces</span>`
+            },
+            "ReferenceError": {
+                desc: "Raised when you try to access an object through a weak reference after the object has been deleted by garbage collection.",
+                badge: "",
+                common: false,
+                code: `<span class="code-keyword">import</span> weakref
+
+<span class="code-keyword">class</span> <span class="code-function">MyClass</span>:
+    <span class="code-keyword">pass</span>
+
+obj = <span class="code-function">MyClass</span>()
+weak = weakref.<span class="code-function">ref</span>(obj)
+<span class="code-keyword">del</span> obj
+<span class="code-function">print</span>(weak())  <span class="code-comment"># ReferenceError if obj was collected</span>`
+            },
+            "SystemError": {
+                desc: "Raised when Python's interpreter finds an internal error. This indicates a bug in Python itself, not your code.",
+                badge: "",
+                common: false,
+                code: `<span class="code-comment"># Very rare - indicates Python interpreter bug</span>
+<span class="code-comment"># You should report this to Python developers</span>
+<span class="code-keyword">try</span>:
+    <span class="code-comment"># Some operation that breaks Python internally</span>
+    <span class="code-keyword">pass</span>
+<span class="code-keyword">except</span> <span class="code-function">SystemError</span>:
+    <span class="code-function">print</span>(<span class="code-string">"Python bug detected!"</span>)`
+            },
+            "TypeError": {
+                desc: "Raised when you perform an operation on the wrong type of object. One of the most common errors in Python.",
+                badge: "",
+                common: true,
+                code: `result = <span class="code-string">"Hello"</span> + <span class="code-function">5</span>
+<span class="code-comment"># TypeError: can only concatenate str (not "int") to str</span>
+
+<span class="code-function">len</span>(<span class="code-function">123</span>)
+<span class="code-comment"># TypeError: object of type 'int' has no len()</span>
+
+<span class="code-keyword">def</span> <span class="code-function">greet</span>(name):
+    <span class="code-keyword">return</span> <span class="code-string">f"Hello {name}"</span>
+
+<span class="code-function">greet</span>()  <span class="code-comment"># Missing argument</span>
+<span class="code-comment"># TypeError: greet() missing 1 required positional argument</span>`
+            },
+            "ValueError": {
+                desc: "Raised when a function gets an argument of the correct type but an inappropriate value. Very common with type conversions.",
+                badge: "",
+                common: true,
+                code: `num = <span class="code-function">int</span>(<span class="code-string">"abc"</span>)
+<span class="code-comment"># ValueError: invalid literal for int() with base 10: 'abc'</span>
+
+<span class="code-function">list</span>.<span class="code-function">remove</span>(<span class="code-function">99</span>)  <span class="code-comment"># 99 not in list</span>
+<span class="code-comment"># ValueError: list.remove(x): x not in list</span>
+
+<span class="code-keyword">import</span> math
+math.<span class="code-function">sqrt</span>(<span class="code-function">-1</span>)
+<span class="code-comment"># ValueError: math domain error</span>`
+            },
+            "UnicodeError": {
+                desc: "Base class for Unicode-related errors. Happens when encoding or decoding text with incompatible character sets.",
+                badge: "",
+                common: false,
+                code: `text = <span class="code-string">"Hello 世界"</span>
+text.<span class="code-function">encode</span>(<span class="code-string">"ascii"</span>)
+<span class="code-comment"># UnicodeEncodeError: 'ascii' codec can't encode characters</span>`
+            },
+            "UnicodeEncodeError": {
+                desc: "Raised when converting Unicode text to bytes fails because the encoding doesn't support certain characters.",
+                badge: "",
+                common: false,
+                code: `text = <span class="code-string">"Hello 世界"</span>
+text.<span class="code-function">encode</span>(<span class="code-string">"ascii"</span>)
+<span class="code-comment"># UnicodeEncodeError: 'ascii' codec can't encode characters</span>
+
+<span class="code-comment"># Solution: use utf-8</span>
+text.<span class="code-function">encode</span>(<span class="code-string">"utf-8"</span>)  <span class="code-comment"># Works!</span>`
+            },
+            "UnicodeDecodeError": {
+                desc: "Raised when converting bytes to text fails because the bytes aren't valid in the specified encoding.",
+                badge: "",
+                common: false,
+                code: `data = <span class="code-string">b"\\xff\\xfe"</span>
+data.<span class="code-function">decode</span>(<span class="code-string">"utf-8"</span>)
+<span class="code-comment"># UnicodeDecodeError: 'utf-8' codec can't decode byte</span>`
+            },
+            "UnicodeTranslateError": {
+                desc: "Raised when Unicode text can't be translated to another encoding. Rare — usually happens with special character conversions.",
+                badge: "",
+                common: false,
+                code: `<span class="code-comment"># Rare - happens with unicode translation</span>
+<span class="code-string">"text"</span>.<span class="code-function">translate</span>(<span class="code-keyword">None</span>)
+<span class="code-comment"># Can raise UnicodeTranslateError in certain cases</span>`
+            },
+            "ZeroDivisionError": {
+                desc: "Raised when you try to divide or take modulo by zero. Math doesn't allow this, and neither does Python!",
+                badge: "",
+                common: true,
+                code: `result = <span class="code-function">10</span> / <span class="code-function">0</span>
+<span class="code-comment"># ZeroDivisionError: division by zero</span>
+
+result = <span class="code-function">10</span> % <span class="code-function">0</span>
+<span class="code-comment"># ZeroDivisionError: integer division or modulo by zero</span>
+
+<span class="code-comment"># Safe approach:</span>
+<span class="code-keyword">if</span> divisor != <span class="code-function">0</span>:
+    result = dividend / divisor`
+            },
+            "Warning": {
+                desc: "Base class for all warning types. Warnings are not errors — they alert you to potential issues but don't stop your program.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+warnings.<span class="code-function">warn</span>(<span class="code-string">"This feature is deprecated"</span>, <span class="code-function">DeprecationWarning</span>)
+<span class="code-comment"># Shows warning but program continues</span>`
+            },
+            "UserWarning": {
+                desc: "Default warning category for your own code. Use this to warn users about something in your program.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-keyword">def</span> <span class="code-function">old_function</span>():
+    warnings.<span class="code-function">warn</span>(<span class="code-string">"Use new_function() instead"</span>, <span class="code-function">UserWarning</span>)`
+            },
+            "DeprecationWarning": {
+                desc: "Warning that a feature is deprecated and will be removed in a future version. Important for library maintainers.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-keyword">def</span> <span class="code-function">old_api</span>():
+    warnings.<span class="code-function">warn</span>(<span class="code-string">"old_api() is deprecated, use new_api()"</span>, 
+                 <span class="code-function">DeprecationWarning</span>)`
+            },
+            "PendingDeprecationWarning": {
+                desc: "Warning that a feature will be deprecated in the future. Gives users advance notice before something becomes deprecated.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+warnings.<span class="code-function">warn</span>(<span class="code-string">"This will be deprecated soon"</span>, 
+             <span class="code-function">PendingDeprecationWarning</span>)`
+            },
+            "SyntaxWarning": {
+                desc: "Warning about suspicious syntax that might be a mistake. Python 3.8+ shows these for things like 'is' with literals.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">if</span> <span class="code-function">True</span> <span class="code-keyword">is</span> <span class="code-function">True</span>:  <span class="code-comment"># Should use ==</span>
+    <span class="code-function">print</span>(<span class="code-string">"hello"</span>)
+<span class="code-comment"># SyntaxWarning: "is" with a literal</span>`
+            },
+            "RuntimeWarning": {
+                desc: "Warning about suspicious runtime behavior, like overflow in calculations or invalid operations.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+<span class="code-keyword">import</span> math
+
+warnings.<span class="code-function">warn</span>(<span class="code-string">"Possible overflow detected"</span>, <span class="code-function">RuntimeWarning</span>)
+
+<span class="code-comment"># Also raised automatically:</span>
+math.<span class="code-function">exp</span>(<span class="code-function">1000</span>)  <span class="code-comment"># OverflowWarning</span>`
+            },
+            "FutureWarning": {
+                desc: "Warning that the semantics of your code will change in a future Python version. Helps prepare for upgrades.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+warnings.<span class="code-function">warn</span>(<span class="code-string">"Behavior will change in Python 4.0"</span>, 
+             <span class="code-function">FutureWarning</span>)`
+            },
+            "ImportWarning": {
+                desc: "Warning about potential problems during module imports. Usually shown when there are issues finding or loading modules.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-comment"># Triggered during import issues</span>
+warnings.<span class="code-function">warn</span>(<span class="code-string">"Module import may fail"</span>, <span class="code-function">ImportWarning</span>)`
+            },
+            "UnicodeWarning": {
+                desc: "Warning about Unicode-related issues that don't raise an error but might cause unexpected behavior.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-comment"># Unicode comparison issues</span>
+warnings.<span class="code-function">warn</span>(<span class="code-string">"Unicode comparison may be incorrect"</span>, 
+             <span class="code-function">UnicodeWarning</span>)`
+            },
+            "BytesWarning": {
+                desc: "Warning about mixing bytes and text strings. Important in Python 3 where bytes and str are different types.",
+                badge: "Warning",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-comment"># Mixing bytes and str</span>
+warnings.<span class="code-function">warn</span>(<span class="code-string">"Bytes and str mixed"</span>, <span class="code-function">BytesWarning</span>)`
+            },
+            "ResourceWarning": {
+                desc: "Warning about resource usage issues, like unclosed files or network connections. Helps prevent resource leaks.",
+                badge: "3.2+",
+                common: false,
+                code: `<span class="code-keyword">import</span> warnings
+
+<span class="code-comment"># Unclosed file warning</span>
+f = <span class="code-function">open</span>(<span class="code-string">"file.txt"</span>)
+<span class="code-comment"># ResourceWarning: unclosed file when f goes out of scope</span>
+
+<span class="code-comment"># Better: use context manager</span>
+<span class="code-keyword">with</span> <span class="code-function">open</span>(<span class="code-string">"file.txt"</span>) <span class="code-keyword">as</span> f:
+    <span class="code-keyword">pass</span>  <span class="code-comment"># Automatically closed</span>`
+            },
+            "ExceptionGroup": {
+                desc: "Represents multiple exceptions raised at once. New in Python 3.11, used with the except* syntax to handle multiple errors together.",
+                badge: "3.11+",
+                common: false,
+                code: `<span class="code-keyword">raise</span> <span class="code-function">ExceptionGroup</span>(<span class="code-string">"multiple errors"</span>, [
+    <span class="code-function">ValueError</span>(<span class="code-string">"error 1"</span>),
+    <span class="code-function">TypeError</span>(<span class="code-string">"error 2"</span>)
+])
+
+<span class="code-comment"># Handle with except*:</span>
+<span class="code-keyword">except*</span> <span class="code-function">ValueError</span> <span class="code-keyword">as</span> eg:
+    <span class="code-function">print</span>(<span class="code-string">"Caught value errors"</span>)`
+            },
+            "BaseExceptionGroup": {
+                desc: "Base class for ExceptionGroup. Can contain any BaseException, not just Exception. Also new in Python 3.11.",
+                badge: "3.11+",
+                common: false,
+                code: `<span class="code-keyword">raise</span> <span class="code-function">BaseExceptionGroup</span>(<span class="code-string">"group"</span>, [
+    <span class="code-function">KeyboardInterrupt</span>(),
+    <span class="code-function">ValueError</span>(<span class="code-string">"error"</span>)
+])`
+            }
+        };
+
+        // Tree Structure Definition
+        const treeStructure = [
+            { name: "BaseException", badge: "base", common: false, children: [
+                { name: "SystemExit", badge: "", common: false },
+                { name: "KeyboardInterrupt", badge: "", common: true },
+                { name: "GeneratorExit", badge: "", common: false },
+                { name: "Exception", badge: "", common: true, children: [
+                    { name: "StopIteration", badge: "", common: false },
+                    { name: "AssertionError", badge: "", common: true },
+                    { name: "AttributeError", badge: "", common: true },
+                    { name: "BufferError", badge: "", common: false },
+                    { name: "EOFError", badge: "", common: false },
+                    { name: "ImportError", badge: "", common: true, children: [
+                        { name: "ModuleNotFoundError", badge: "new", common: true }
+                    ]},
+                    { name: "LookupError", badge: "", common: false, children: [
+                        { name: "IndexError", badge: "", common: true },
+                        { name: "KeyError", badge: "", common: true }
+                    ]},
+                    { name: "MemoryError", badge: "", common: false },
+                    { name: "NameError", badge: "", common: true, children: [
+                        { name: "UnboundLocalError", badge: "", common: false }
+                    ]},
+                    { name: "OSError", badge: "", common: true, children: [
+                        { name: "FileNotFoundError", badge: "new", common: true },
+                        { name: "PermissionError", badge: "new", common: true },
+                        { name: "FileExistsError", badge: "new", common: false },
+                        { name: "InterruptedError", badge: "new", common: false },
+                        { name: "IsADirectoryError", badge: "new", common: false },
+                        { name: "NotADirectoryError", badge: "new", common: false }
+                    ]},
+                    { name: "RuntimeError", badge: "", common: true, children: [
+                        { name: "RecursionError", badge: "new", common: false },
+                        { name: "NotImplementedError", badge: "", common: false }
+                    ]},
+                    { name: "SyntaxError", badge: "", common: true, children: [
+                        { name: "IndentationError", badge: "", common: true },
+                        { name: "TabError", badge: "", common: false }
+                    ]},
+                    { name: "ReferenceError", badge: "", common: false },
+                    { name: "SystemError", badge: "", common: false },
+                    { name: "TypeError", badge: "", common: true },
+                    { name: "ValueError", badge: "", common: true, children: [
+                        { name: "ZeroDivisionError", badge: "", common: true },
+                        { name: "UnicodeError", badge: "", common: false, children: [
+                            { name: "UnicodeEncodeError", badge: "", common: false },
+                            { name: "UnicodeDecodeError", badge: "", common: false },
+                            { name: "UnicodeTranslateError", badge: "", common: false }
+                        ]}
+                    ]},
+                    { name: "Warning", badge: "", common: false, children: [
+                        { name: "UserWarning", badge: "", common: false },
+                        { name: "DeprecationWarning", badge: "", common: false },
+                        { name: "PendingDeprecationWarning", badge: "", common: false },
+                        { name: "SyntaxWarning", badge: "", common: false },
+                        { name: "RuntimeWarning", badge: "", common: false },
+                        { name: "FutureWarning", badge: "", common: false },
+                        { name: "ImportWarning", badge: "", common: false },
+                        { name: "UnicodeWarning", badge: "", common: false },
+                        { name: "BytesWarning", badge: "", common: false },
+                        { name: "ResourceWarning", badge: "new", common: false }
+                    ]},
+                    { name: "ExceptionGroup", badge: "new", common: false, children: [
+                        { name: "BaseExceptionGroup", badge: "new", common: false }
+                    ]}
+                ]}
+            ]}
+        ];
+
+        // Render Tree
+        const treeContainer = document.getElementById('exceptionTree');
+
+        function createNode(item, level = 0) {
+            const li = document.createElement('li');
+            const hasChildren = item.children && item.children.length > 0;
+            
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = `node ${hasChildren ? 'has-children' : 'leaf'}`;
+            nodeDiv.onclick = (e) => {
+                e.stopPropagation();
+                handleNodeClick(nodeDiv, hasChildren, item.name);
+            };
+
+            // Icon
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'node-icon';
+            if (hasChildren) {
+                iconSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg>`;
+            }
+            nodeDiv.appendChild(iconSpan);
+
+            // Name with optional star
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'node-name';
+            const starHtml = item.common ? '<span class="star">★</span>' : '';
+            nameSpan.innerHTML = `${starHtml}${item.name}`;
+            nodeDiv.appendChild(nameSpan);
+
+            // Badge
+            if (item.badge) {
+                const badgeSpan = document.createElement('span');
+                badgeSpan.className = `badge ${item.badge}`;
+                badgeSpan.textContent = item.badge === 'base' ? 'Base' : (item.badge === 'new' ? '3.3+' : '');
+                nodeDiv.appendChild(badgeSpan);
+            }
+
+            li.appendChild(nodeDiv);
+
+            // Children
+            if (hasChildren) {
+                const ul = document.createElement('ul');
+                item.children.forEach(child => {
+                    ul.appendChild(createNode(child, level + 1));
+                });
+                li.appendChild(ul);
+            }
+
+            return li;
+        }
+
+        treeStructure.forEach(item => {
+            treeContainer.appendChild(createNode(item));
+        });
+
+        // Interaction Logic
+        function handleNodeClick(element, hasChildren, name) {
+            // Toggle Expansion
+            if (hasChildren) {
+                element.classList.toggle('expanded');
+                const ul = element.parentElement.querySelector('ul');
+                if (ul) ul.classList.toggle('open');
+            }
+
+            // Select Active
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+
+            // Show Details
+            showDetails(name);
+        }
+
+        function showDetails(name) {
+            const data = exceptionData[name];
+            const emptyState = document.getElementById('emptyState');
+            const detailContent = document.getElementById('detailContent');
+
+            if (data) {
+                emptyState.style.display = 'none';
+                detailContent.classList.add('visible');
+                
+                document.getElementById('detailTitle').textContent = name;
+                document.getElementById('detailDesc').textContent = data.desc;
+                document.getElementById('detailCode').innerHTML = data.code;
+                
+                const starEl = document.getElementById('detailStar');
+                starEl.style.display = data.common ? 'inline' : 'none';
+                
+                const badgeEl = document.getElementById('detailBadge');
+                if (data.badge) {
+                    badgeEl.textContent = data.badge;
+                    badgeEl.style.display = 'inline-block';
+                } else {
+                    badgeEl.style.display = 'none';
+                }
+            }
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.has-children').forEach(node => {
+                node.classList.add('expanded');
+                const ul = node.parentElement.querySelector('ul');
+                if (ul) ul.classList.add('open');
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.has-children').forEach(node => {
+                node.classList.remove('expanded');
+                const ul = node.parentElement.querySelector('ul');
+                if (ul) ul.classList.remove('open');
+            });
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('detailContent').classList.remove('visible');
+        }
+
+        // function filterTree() {
+        //     const input = document.getElementById('searchInput');
+        //     const filter = input.value.toLowerCase();
+        //     const nodes = document.querySelectorAll('.node');
+
+        //     nodes.forEach(node => {
+        //         const name = node.querySelector('.node-name').textContent.toLowerCase();
+        //         const li = node.parentElement;
+                
+        //         if (name.includes(filter)) {
+        //             li.style.display = '';
+        //             // Expand parents if match found
+        //             let parent = li.parentElement;
+        //             while (parent && parent.tagName === 'UL') {
+        //                 parent.classList.add('open');
+        //                 const parentLi = parent.parentElement;
+        //                 if (parentLi) {
+        //                     const parentNode = parentLi.querySelector('.node');
+        //                     if (parentNode) parentNode.classList.add('expanded');
+        //                 }
+        //                 parent = parent.parentElement;
+        //             }
+        //         } else {
+        //             li.style.display = 'none';
+        //         }
+        //     });
+        // }
+
+        function filterTree() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase().trim();
+            const allLis = document.querySelectorAll('.tree li');
+            const allUls = document.querySelectorAll('.tree ul');
+            const allNodes = document.querySelectorAll('.node');
+
+            // If search is empty, reset everything
+            if (filter === '') {
+                allLis.forEach(li => li.style.display = '');
+                allUls.forEach(ul => ul.classList.remove('open'));
+                allNodes.forEach(node => {
+                    node.style.display = '';
+                    node.classList.remove('expanded');
+                });
+                return;
+            }
+
+            // Reset: hide all ULs and clear expanded states
+            allUls.forEach(ul => ul.classList.remove('open'));
+            allNodes.forEach(node => {
+                node.classList.remove('expanded');
+                node.parentElement.style.display = 'none';
+            });
+
+            // Find and show matching nodes with their parents
+            allNodes.forEach(node => {
+                const nameText = node.querySelector('.node-name').textContent.replace('★', '').trim().toLowerCase();
+                
+                if (nameText.includes(filter)) {
+                    const li = node.parentElement;
+                    li.style.display = 'block';
+                    node.style.display = 'flex';
+                    node.classList.add('expanded');
+                    
+                    // Show all parent ULs and LIs
+                    let parent = li.parentElement;
+                    while (parent) {
+                        if (parent.tagName === 'UL') {
+                            parent.classList.add('open');
+                            parent = parent.parentElement;
+                        } else if (parent.tagName === 'LI') {
+                            parent.style.display = 'block';
+                            const parentNode = parent.querySelector(':scope > .node');
+                            if (parentNode) {
+                                parentNode.style.display = 'flex';
+                                parentNode.classList.add('expanded');
+                            }
+                            parent = parent.parentElement;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+        // Initialize with Exception expanded
+        window.addEventListener('load', () => {
+            const nodes = document.querySelectorAll('.node-name');
+            nodes.forEach(n => {
+                if (n.textContent.replace('★', '').trim() === 'Exception') {
+                    const nodeDiv = n.parentElement;
+                    nodeDiv.classList.add('expanded');
+                    const ul = nodeDiv.parentElement.querySelector('ul');
+                    if(ul) ul.classList.add('open');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
